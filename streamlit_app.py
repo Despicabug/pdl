@@ -1,6 +1,5 @@
 import streamlit as st
 import whisper
-
 import openai
 
 import base64
@@ -24,8 +23,6 @@ def summarize_text(text):
   summary = response["choices"][0]["text"]
   return summary
 
-
-
 # Load the model
 model = whisper.load_model("base")
 
@@ -33,10 +30,12 @@ model = whisper.load_model("base")
 st.title("Transcriber")
 audio_file = st.file_uploader("Upload Audio", type=["wav", "mp3", "m4a"])
 
+language = st.sidebar.selectbox("Select Language", ["English", "Spanish", "French", "German", "Italian"])
+
 if st.sidebar.button("Transcribe Audio"):
     if audio_file is not None:
         st.sidebar.success("Transcribing Audio")
-        transcription = model.transcribe(audio_file.name, fp16=False, language='English')
+        transcription = model.transcribe(audio_file.name, fp16=False, language=language)
         text = transcription["text"]
         st.sidebar.success("Transcription Complete")
         st.markdown(transcription["text"])
