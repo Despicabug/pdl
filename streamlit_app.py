@@ -1,11 +1,10 @@
 import streamlit as st
-import whisper
 import openai
-
-import base64
-import json
+import whisper
 
 openai.api_key = "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"
+
+st.set_option('deprecation.showfileUploaderEncoding', False)
 
 def summarize_text(text):
   # Use the OpenAI GPT-3 model to summarize the text
@@ -21,43 +20,84 @@ def summarize_text(text):
 
   # Extract the summary from the model's response
   summary = response["choices"][0]["text"]
+
+  # Update the progress bar
+
   return summary
 
-# Load the model
-model = whisper.load_model("base")
-
 # Set up the user interface
-st.title("Transcriber")
+st.title("Summarizer")
 audio_file = st.file_uploader("Upload Audio", type=["wav", "mp3", "m4a"])
-
-language = st.sidebar.selectbox("Select Language", ["English", "Spanish", "French", "German", "Italian"])
-
-if st.sidebar.button("Transcribe Audio"):
+if audio_file is not None:
+  audio_progress = st.progress(0)
+  audio_file.seek(0, 2)
+  total_size = audio_file.tell()
+  audio_file.seek(0)
+  uploaded_size = 0
+  while uploaded_size < total_size:
+    chunk = audio_file.read(1024)
+    uploaded_size += len(chunk)
+    audio_progress.progress(int((uploaded_size / total_size) * 100))
+  
+  # Summarize Audio
+  if st.button("Summarize Audio"):
     if audio_file is not None:
-        st.sidebar.success("Transcribing Audio")
-        transcription = model.transcribe(audio_file.name, fp16=False, language=language)
-        text = transcription["text"]
-        st.sidebar.success("Transcription Complete")
-        st.markdown(transcription["text"])
+        with st.spinner("Transcribing audio..."):
+          # Load the model and transcribe the audio
+          model = whisper.load_model("base")
+          transcription = model.transcribe(audio_file.name, fp16=False, language='English')
+          text = transcription["text"]
+        
+        st.success("Transcription Complete")
+        transcription_text_area = st.text_area("", value=transcription["text"])
+        st.download_button('Download Transcript', text,"transcript.txt")
+
+        # Show the spinner again
+        with st.spinner("Summarizing text..."):
+          # Summarize the transcription
+          summary = summarize_text(text)
+
+        st.success("Summarization Complete")
+        summary_text_area = st.text_area("", value=summary)  # Display the summary
+        
+
+        st.download_button('Download Summary', summary,"summary.txt")
+
+        
     else:
-        st.sidebar.error("Please upload an audio file")
+        st.error("Please upload an audio file")
 
-if st.sidebar.button("Summarize Text"):
-    if audio_file is not None:
-        st.sidebar.success("Transcribing Audio")
-        transcription = model.transcribe(audio_file.name, fp16=False, language='English')
-        text = transcription["text"]
-        st.sidebar.success("Transcription Complete")
-        st.markdown(transcription["text"])
+text_file = st.file_uploader("Upload Text", type=["txt"])
+if text_file is not None:
+  text_progress = st.progress(0)
+  text_file.seek(0, 2)
+  total_size = text_file.tell()
+  text_file.seek(0)
+  uploaded_size = 0
+  while uploaded_size < total_size:
+    chunk = text_file.read(1024)
+    uploaded_size += len(chunk)
+    text_progress.progress(int((uploaded_size / total_size) * 100))
 
-        # Summarize the transcription
-        summary = summarize_text(text)
-        st.sidebar.success("Summarization Complete")
-        print(summary)  # Debugging line
-        st.markdown(summary)  # Display the summary
+  # Summarize Text
+  if st.button("Summarize Text"):
+    if text_file is not None:
+        # Show the spinner again
+        with st.spinner("Summarizing text..."):
+          # Read the contents of the file into a string
+          file_contents = text_file.read().decode()
+          
+          # Pass the file contents as a string to the open() function
+          with open(text_file.name, 'r',encoding='utf8') as file:
+              text = file.read()
+              summary = summarize_text(text)
+              st.success("Summarization Complete")
+              summary_text_area = st.text_area("", value=summary)  # Display the summary
+              
+              st.download_button('Download Summary', summary,"summary.txt")
+
     else:
-        st.sidebar.error("Please upload an audio file")
-
+        st.error("Please upload a text file")
 
 st.sidebar.header("Play Original Audio File")
 st.sidebar.audio(audio_file)
