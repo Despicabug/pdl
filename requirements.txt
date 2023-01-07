@@ -1,5 +1,5 @@
 streamlit==1.16.0
 openai==0.26.0
-ffmpeg=1.4
+ffmpeg==1.4
 git+https://github.com/openai/whisper.git#egg=whisper
 
