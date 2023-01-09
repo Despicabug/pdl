@@ -2,7 +2,7 @@ import streamlit as st
 import openai
 import whisper
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 st.set_option('deprecation.showfileUploaderEncoding', False)
 
