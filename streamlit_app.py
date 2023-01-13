@@ -1,8 +1,9 @@
 import streamlit as st
 import openai
 import whisper
+import constants
 
-openai.api_key = "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"
+openai.api_key =  st.secrets["API_KEY"] or constants.API_KEY
 
 st.set_option('deprecation.showfileUploaderEncoding', False)
 
