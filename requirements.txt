@@ -2,3 +2,4 @@ streamlit==1.16.0
 openai==0.26.0
 ffmpeg-python
 openai-whisper==20230124 # https://github.com/openai/whisper
+git+https://github.com/openai/whisper.git
